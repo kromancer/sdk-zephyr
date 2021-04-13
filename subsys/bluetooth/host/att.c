@@ -477,8 +477,11 @@ static void att_send_process(struct bt_att *att)
 	struct net_buf *buf;
 	int err = -ENOENT;
 
+	k_sched_lock();
+
 	buf = net_buf_get(&att->tx_queue, K_NO_WAIT);
 	if (!buf) {
+		k_sched_unlock();
 		return;
 	}
 
@@ -493,6 +496,8 @@ static void att_send_process(struct bt_att *att)
 		/* Push it back if it could not be send */
 		k_queue_prepend(&att->tx_queue._queue, buf);
 	}
+
+	k_sched_unlock();
 }
 
 static void bt_att_chan_send_rsp(struct bt_att_chan *chan, struct net_buf *buf,
